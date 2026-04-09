@@ -53,7 +53,7 @@ OLD_IFS="$IFS"
 IFS=','; set -- $GENRES; IFS="$OLD_IFS"
 GENRE_LIST="$*"
 
-for GENRE in $GENRE_LIST; do
+for GENRE in "$@"; do
     echo "Processing genre: $GENRE"
     LOG_DIR="./genres/$GENRE"
     mkdir -p "$LOG_DIR"
@@ -82,7 +82,8 @@ for GENRE in $GENRE_LIST; do
         FOUND=0
         while [ $RETRY -le 1 ]; do
             RESPONSE=$(curl -s -G -H "X-Api-Key: $API_KEY" --data-urlencode "name=$ARTIST_NAME" "$LIDARR_URL/artist")
-            ARTIST_ID=$(echo "$RESPONSE" | jq -r ".[] | select(.artistName==\"$ARTIST_NAME\") | .id" 2>/dev/null)
+            ARTIST_ID=$(echo "$RESPONSE" | jq -r --arg name "$ARTIST_NAME" '.[] | select(.artistName==$name) | .id' 2>/dev/null)
+            #ARTIST_ID=$(echo "$RESPONSE" | jq -r ".[] | select(.artistName==\"$ARTIST_NAME\") | .id" 2>/dev/null)
             if [ -n "$ARTIST_ID" ] && [ "$ARTIST_ID" != "null" ]; then
                 FOUND=1
                 break
